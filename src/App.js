@@ -56,6 +56,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('interstellar');
+  const tempQuery = 'interstellar';
 
   useEffect(
     function () {
@@ -69,7 +70,6 @@ export default function App() {
           if (!res.ok)
             throw new Error('Something went wrong with getting movies');
           const data = await res.json();
-          console.log(data);
           if (data.Response === 'False') throw new Error('Movie not found');
           setMovies(data.Search);
         } catch (err) {
