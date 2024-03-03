@@ -56,8 +56,13 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('interstellar');
-  const tempQuery = 'interstellar';
-
+  const [selectedId, setSelectedId] = useState(null);
+  function handleSelectMovie(id) {
+    setSelectedId((selectedId) => (id === selectedId ? null : id));
+  }
+  function handleCloseMovie() {
+    setSelectedId(null);
+  }
   useEffect(
     function () {
       async function fetchMovies() {
@@ -100,10 +105,19 @@ export default function App() {
           {/* {isLoading ? <Loader /> : <Results movies={movies} />} */}
           {isLoading && <Loader />}
           {error && <ErrorMessage message={error} />}
-          {!isLoading && !error && <Results movies={movies} />}
+          {!isLoading && !error && (
+            <Results onSelectMovie={handleSelectMovie} movies={movies} />
+          )}
         </Box>
         <Box>
-          <Summary watched={watched} />
+          {selectedId ? (
+            <MovieDetails
+              selectedId={selectedId}
+              onCloseMovie={handleCloseMovie}
+            />
+          ) : (
+            <Summary watched={watched} />
+          )}
         </Box>
       </Main>
     </>
@@ -176,15 +190,54 @@ function SearchMovieCard({ movie }) {
     </>
   );
 }
-function Results({ movies }) {
+function Results({ movies, onSelectMovie, onCloseMovie }) {
   return (
-    <ul className="list">
+    <ul className="list list-movies">
       {movies?.map((movie) => (
-        <li key={movie.imdbID}>
+        <li key={movie.imdbID} onClick={() => onSelectMovie(movie.imdbID)}>
           <SearchMovieCard movie={movie} />
         </li>
       ))}
     </ul>
+  );
+}
+
+function MovieDetails({ selectedId, onCloseMovie }) {
+  const [movie, setMovie] = useState({});
+  const {
+    Title: title,
+    Year: year,
+    Poster: poster,
+    Runtime: runtime,
+    imdbRating,
+    Plot: plot,
+    Released: released,
+    Actors: actors,
+    Director: director,
+    Genre: genre,
+  } = movie;
+  console.log(title, year);
+  useEffect(function () {
+    async function getMovieDetails() {
+      const res = await fetch(
+        `http://www.omdbapi.com/?apikey=${KEY}&i=${selectedId}`
+      );
+      const data = await res.json();
+      setMovie(data);
+    }
+    getMovieDetails();
+  }, []);
+
+  return (
+    <div className="details">
+      <header>
+        <img src={poster} alt={`Poster of ${movie} movie`} />
+      </header>
+      <button className="btn-back" onClick={() => onCloseMovie()}>
+        &larr;
+      </button>
+      {selectedId}
+    </div>
   );
 }
 
